@@ -1,9 +1,7 @@
-# site/ 를 GitHub Pages 로 올린다 (build.py 를 내 컴퓨터에서 돌린 뒤 push 하면 바로 배포)
+# 사진 사이트 배포. 사진은 비공개 저장소(marshmalloc-photos-src)에 있고, 이 공개 저장소에는 배포 절차만 둔다.
+# publish.py 가 비공개 저장소에 올린 뒤 이 작업을 직접 실행시킨다 (workflow_dispatch)
 name: pages
 on:
-  push:
-    branches: [main]
-    paths: [site/**]
   workflow_dispatch:
 permissions:
   contents: read
@@ -17,11 +15,17 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          repository: CaTpiN9791/marshmalloc-photos-src
+          ssh-key: ${{ secrets.SRC_DEPLOY_KEY }}
+          path: src
+          persist-credentials: false
+      - run: rm -rf src/.git src/FOLDER
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: site
+          path: src
+          retention-days: 1
       - id: deploy
         uses: actions/deploy-pages@v4
