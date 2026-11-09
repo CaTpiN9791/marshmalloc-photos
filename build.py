@@ -4,7 +4,7 @@
 #  - 세로 사진은 90° 돌려 가로로 넣는다 (출력 사진을 손에 들고 돌려 보면 됨)
 #  - 사진 p_0000.jpg = 1920×1080 JPG 95 (16:9 가운데 자르기). 크게 보기·출력 모두 이것 (월드가 받자마자 GPU 압축해 메모리를 줄임)
 #  - 썸네일 256×144 를 2048×2048 판에 8열 × 14행 (판 하나 112장)
-#  - 월드에는 사진 1000장, 판 10장까지 주소가 들어 있다
+#  - 월드에는 사진 2240장, 판 20장까지 주소가 들어 있다 (Pages 사이트 한도 1GB, 평균 0.39MB/장이면 약 880MB)
 # 쓰는 법: python build.py            (photos/ 폴더)
 #         python build.py D:\어딘가\사진폴더
 #         python build.py 목록.txt       (한 줄에 사진 경로 하나, 복사 없이)
@@ -17,7 +17,7 @@ SRC = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, "photos")
 SITE = os.path.join(HERE, "site")
 with open(os.path.join(SITE, "FOLDER"), encoding="utf-8") as _f:
     OUT = os.path.join(SITE, _f.read().strip())
-MAX_PHOTOS, PER_ATLAS, COLS, ATLAS = 1000, 112, 8, 2048
+MAX_PHOTOS, PER_ATLAS, COLS, ATLAS = 2240, 112, 8, 2048
 FW, FH, TW, TH = 1920, 1080, 256, 144
 VRC = re.compile(r"(\d{4})-(\d{2})-(\d{2})_(\d{2})-(\d{2})-(\d{2})")
 
@@ -66,6 +66,8 @@ def main():
     with open(os.path.join(OUT, "index.json"), "w", encoding="utf-8") as f:
         json.dump({"count": len(files), "dates": dates}, f, ensure_ascii=False, separators=(",", ":"))
     size = sum(os.path.getsize(p) for p in glob.glob(os.path.join(OUT, "*")))
+    if size > 1e9:
+        print(f"경고: {size / 1e6:.0f}MB 로 GitHub Pages 한도(1GB)를 넘습니다. 사진을 줄이세요.")
     print(f"완료: {len(files)}장, 판 {ai + 1}장, {size / 1e6:.1f}MB. 올리기: python publish.py")
 
 if __name__ == "__main__":
