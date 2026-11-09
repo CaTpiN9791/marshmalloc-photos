@@ -1,0 +1,3 @@
+# 원본 사진은 올리지 않는다 (용량). build.py 가 만든 site/ 만 올린다
+photos/
+__pycache__/
