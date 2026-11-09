@@ -3,7 +3,7 @@
 #  - 최신순 (VRChat 스크린샷 파일 이름의 날짜, 없으면 파일 수정 시각)
 #  - 세로 사진은 90° 돌려 가로로 넣는다 (출력 사진을 손에 들고 돌려 보면 됨)
 #  - 사진 p_0000.jpg = 1920×1080 JPG 95 (16:9 가운데 자르기). 크게 보기·출력 모두 이것 (월드가 받자마자 GPU 압축해 메모리를 줄임)
-#  - 썸네일 256×144 를 2048×2048 판에 8열 × 14행 (판 하나 112장)
+#  - 목록 스크롤은 썸네일 판만 받는다 (FHD 는 눌러서 크게 볼 때·출력할 때만). 썸네일 256×144 JPG 75 를 2048×2048 판에 8열 × 14행 (판 하나 112장)
 #  - 월드에는 사진 2240장, 판 20장까지 주소가 들어 있다 (Pages 사이트 한도 1GB, 평균 0.39MB/장이면 약 880MB)
 # 쓰는 법: python build.py            (photos/ 폴더)
 #         python build.py D:\어딘가\사진폴더
@@ -19,6 +19,7 @@ with open(os.path.join(SITE, "FOLDER"), encoding="utf-8") as _f:
     OUT = os.path.join(SITE, _f.read().strip())
 MAX_PHOTOS, PER_ATLAS, COLS, ATLAS = 2240, 112, 8, 2048
 FW, FH, TW, TH = 1920, 1080, 256, 144
+THUMB_Q = 75   # 썸네일 판: 스크롤하면 이것만 받으므로 작게 (판 하나 약 0.57MB, 85 면 0.77MB. 칸 크기에서는 차이 안 보임)
 VRC = re.compile(r"(\d{4})-(\d{2})-(\d{2})_(\d{2})-(\d{2})-(\d{2})")
 
 def when(path):
@@ -53,7 +54,7 @@ def main():
             fit(im, FW, FH).save(os.path.join(OUT, f"p_{i:04d}.jpg"), quality=95, optimize=True, progressive=False)
             if i // PER_ATLAS != ai:
                 if atlas is not None:
-                    atlas.save(os.path.join(OUT, f"thumbs_{ai:02d}.jpg"), quality=85, optimize=True)
+                    atlas.save(os.path.join(OUT, f"thumbs_{ai:02d}.jpg"), quality=THUMB_Q, optimize=True)
                 ai = i // PER_ATLAS
                 atlas = Image.new("RGB", (ATLAS, ATLAS), (26, 28, 32))
             c = i % PER_ATLAS
@@ -62,7 +63,7 @@ def main():
         if (i + 1) % 50 == 0:
             print(f"{i + 1}/{len(files)}")
     if atlas is not None:
-        atlas.save(os.path.join(OUT, f"thumbs_{ai:02d}.jpg"), quality=85, optimize=True)
+        atlas.save(os.path.join(OUT, f"thumbs_{ai:02d}.jpg"), quality=THUMB_Q, optimize=True)
     with open(os.path.join(OUT, "index.json"), "w", encoding="utf-8") as f:
         json.dump({"count": len(files), "dates": dates}, f, ensure_ascii=False, separators=(",", ":"))
     size = sum(os.path.getsize(p) for p in glob.glob(os.path.join(OUT, "*")))
